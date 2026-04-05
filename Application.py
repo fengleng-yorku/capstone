@@ -41,4 +41,4 @@ def get_listStudentsByCourseID_response():
     return jsonify({"response": listOfStudents})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
