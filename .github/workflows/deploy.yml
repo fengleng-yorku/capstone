@@ -1,53 +1,52 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: capstone-python-app
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: capstone-python-app
-  template:
-    metadata:
-      labels:
-        app: capstone-python-app
-    spec:
-      serviceAccountName: capstone-sa
-      containers:
-      - name: capstone-python-app
-        image: 307187891149.dkr.ecr.ca-central-1.amazonaws.com/capstone-python-app:latest
-        ports:
-        - containerPort: 5000
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: capstone-python-app-service
-spec:
-  type: ClusterIP
-  selector:
-    app: capstone-python-app
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 5000
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: capstone-ingress
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: capstone-python-app-service
-            port:
-              number: 80
+name: Build and Deploy to EKS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  ECR_REGISTRY: 307187891149.dkr.ecr.ca-central-1.amazonaws.com
+  ECR_REPOSITORY: capstone-python-app
+  EKS_CLUSTER: adorable-lofi-mongoose
+  AWS_REGION: ca-central-1
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build and push Docker image
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA .
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA \
+                   $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region $AWS_REGION \
+          --name $EKS_CLUSTER
+
+    - name: Deploy to EKS
+      run: |
+        kubectl apply -f deployment.yaml
+        kubectl set image deployment/capstone-python-app \
+          capstone-python-app=$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+        kubectl rollout status deployment/capstone-python-app
