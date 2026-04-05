@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capstone-python-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: capstone-python-app
+  template:
+    metadata:
+      labels:
+        app: capstone-python-app
+    spec:
+      serviceAccountName: capstone-sa
+      containers:
+      - name: capstone-python-app
+        image: 307187891149.dkr.ecr.ca-central-1.amazonaws.com/capstone-python-app:latest
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: capstone-python-app-service
+spec:
+  type: ClusterIP
+  selector:
+    app: capstone-python-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: capstone-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: capstone-python-app-service
+            port:
+              number: 80
