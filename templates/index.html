@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Grade Manager{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div>
+        <h4>Dashboard</h4>
+        <p class="subtitle">Overview of all academic data</p>
+    </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card bg-grad-blue">
+            <div class="label">Total Students</div>
+            <div class="value">{{ stats.students }}</div>
+            <i class="bi bi-person-fill icon"></i>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card bg-grad-green">
+            <div class="label">Total Courses</div>
+            <div class="value">{{ stats.courses }}</div>
+            <i class="bi bi-book-fill icon"></i>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card bg-grad-orange">
+            <div class="label">Total Enrollments</div>
+            <div class="value">{{ stats.enrollments }}</div>
+            <i class="bi bi-journal-check icon"></i>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card bg-grad-red">
+            <div class="label">Total Grades</div>
+            <div class="value">{{ stats.grades }}</div>
+            <i class="bi bi-bar-chart-fill icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Courses Table -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3" style="color:#1a1f36;">All Courses</h6>
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Course Name</th>
+                            <th>Level</th>
+                            <th>Enrolled</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in courses %}
+                        <tr>
+                            <td><span class="text-muted">#{{ course.course_id }}</span></td>
+                            <td>{{ course.course_name }}</td>
+                            <td>
+                                {% if course.level == '1' or course.level == 1 %}
+                                    <span class="badge bg-success badge-level">Level 1</span>
+                                {% elif course.level == '2' or course.level == 2 %}
+                                    <span class="badge bg-primary badge-level">Level 2</span>
+                                {% elif course.level == '3' or course.level == 3 %}
+                                    <span class="badge bg-warning text-dark badge-level">Level 3</span>
+                                {% else %}
+                                    <span class="badge bg-secondary badge-level">Level {{ course.level }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ enrollment_counts.get(course.course_id | string, enrollment_counts.get(course.course_id, 0)) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3" style="color:#1a1f36;">All Students</h6>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Date of Birth</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td><span class="text-muted">#{{ student.student_id }}</span></td>
+                                <td>{{ student.first_name }} {{ student.surname }}</td>
+                                <td>{{ student.date_of_birth }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

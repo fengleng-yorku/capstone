@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Students by Course — Grade Manager{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div>
+        <h4>Students by Course</h4>
+        <p class="subtitle">Look up all students enrolled in a specific course</p>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="search-card">
+            <h6 class="fw-bold mb-3" style="color:#1a1f36;">Select a Course</h6>
+            <form id="searchForm">
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size:0.85rem;">Course</label>
+                    <select class="form-select" id="courseSelect" name="course_ID">
+                        <option value="">— Choose a course —</option>
+                        {% for course in courses %}
+                        <option value="{{ course.course_id }}"
+                            {% if selected_id == course.course_id|string %}selected{% endif %}>
+                            #{{ course.course_id }} — {{ course.course_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i> Search
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                {% if students %}
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold mb-0" style="color:#1a1f36;">
+                        Enrolled Students
+                    </h6>
+                    <span class="badge bg-primary">{{ students|length }} student(s)</span>
+                </div>
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>First Name</th>
+                            <th>Surname</th>
+                            <th>Date of Birth</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        <tr>
+                            <td><span class="text-muted">#{{ s.student_id }}</span></td>
+                            <td>{{ s.first_name }}</td>
+                            <td>{{ s.surname }}</td>
+                            <td>{{ s.date_of_birth }}</td>
+                            <td>
+                                <a href="/grades?student_ID={{ s.student_id }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-bar-chart-line"></i> Grades
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% elif selected_id %}
+                <div class="empty-state">
+                    <i class="bi bi-person-x"></i>
+                    No students found for this course.
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-arrow-left-circle"></i>
+                    Select a course to see enrolled students.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('searchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const id = document.getElementById('courseSelect').value;
+    if (id) window.location.href = '/students?course_ID=' + id;
+});
+</script>
+{% endblock %}

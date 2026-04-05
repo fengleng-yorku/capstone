@@ -15,4 +15,4 @@ RUN apt-get update && apt-get install -y wget && \
 
 EXPOSE 5000
 
-CMD ["python3", "Application.py"]
+CMD ["python3", "main.py"]

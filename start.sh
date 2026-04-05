@@ -1,1 +1,1 @@
-python3 ./Application.py 
+python3 ./main.py

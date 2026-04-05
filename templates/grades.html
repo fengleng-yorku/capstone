@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Grades by Student — Grade Manager{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div>
+        <h4>Grades by Student</h4>
+        <p class="subtitle">Look up all grades for a specific student</p>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="search-card">
+            <h6 class="fw-bold mb-3" style="color:#1a1f36;">Select a Student</h6>
+            <form id="searchForm">
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size:0.85rem;">Student</label>
+                    <select class="form-select" id="studentSelect" name="student_ID">
+                        <option value="">— Choose a student —</option>
+                        {% for student in all_students %}
+                        <option value="{{ student.student_id }}"
+                            {% if selected_id == student.student_id|string %}selected{% endif %}>
+                            #{{ student.student_id }} — {{ student.first_name }} {{ student.surname }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i> Search
+                </button>
+            </form>
+
+            {% if student_info %}
+            <hr>
+            <div class="mt-2">
+                <div class="text-muted" style="font-size:0.8rem;">Selected Student</div>
+                <div class="fw-bold" style="color:#1a1f36;">{{ student_info.first_name }} {{ student_info.surname }}</div>
+                <div class="text-muted" style="font-size:0.82rem;">DOB: {{ student_info.date_of_birth }}</div>
+            </div>
+            {% if grades %}
+            <hr>
+            <div class="mt-2">
+                <div class="text-muted mb-1" style="font-size:0.8rem;">Average Mark</div>
+                {% set total = grades | map(attribute=3) | map('float') | sum %}
+                {% set avg = (total / grades|length) | round(1) %}
+                <div class="display-6 fw-bold
+                    {% if avg >= 70 %}text-success
+                    {% elif avg >= 50 %}text-warning
+                    {% else %}text-danger{% endif %}">
+                    {{ avg }}%
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                {% if grades %}
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold mb-0" style="color:#1a1f36;">Grade Records</h6>
+                    <span class="badge bg-primary">{{ grades|length }} record(s)</span>
+                </div>
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Course</th>
+                            <th>Assignment</th>
+                            <th>Mark</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in grades %}
+                        <tr>
+                            <td><span class="text-muted">#{{ g[0] }}</span></td>
+                            <td>{{ g[1] }}</td>
+                            <td>Assignment {{ g[2] }}</td>
+                            <td>
+                                {% set mark = g[3] | float %}
+                                <span class="fw-bold
+                                    {% if mark >= 70 %}text-success
+                                    {% elif mark >= 50 %}text-warning
+                                    {% else %}text-danger{% endif %}">
+                                    {{ g[3] }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% elif selected_id %}
+                <div class="empty-state">
+                    <i class="bi bi-journal-x"></i>
+                    No grades found for this student.
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-arrow-left-circle"></i>
+                    Select a student to view their grades.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('searchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const id = document.getElementById('studentSelect').value;
+    if (id) window.location.href = '/grades?student_ID=' + id;
+});
+</script>
+{% endblock %}
