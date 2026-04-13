@@ -77,3 +77,4 @@ spec:
             name: capstone-python-app-service
             port:
               number: 80
+              
